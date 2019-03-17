@@ -20,7 +20,7 @@ Soon, -- will read unicode characters. Each will be replaced with ' ' with the c
 
 Soon, -- . will allow the directory to be explored as a menu, so that subdirectories and files can be opened.
 
-Running the . command should redirect to -- .
+Later, running the . command should redirect to -- .
 
 Running the -- command could open stdin, in the same way as cat.
 
