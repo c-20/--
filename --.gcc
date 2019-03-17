@@ -1,0 +1,3 @@
+gcc -o ./-- ./--.c
+
+# The ./ prevents issues with misinterpreting as option flags
