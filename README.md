@@ -8,6 +8,8 @@ If -- is used to display a file, e.g. -- file.txt, then it will display the cont
 
 -- -R[]Y would make each character display as red, and [tags] to be displayed, with each tag in yellow.
 
+-- -n file.arm7 should display without tag matching .... but somehow -- -n ./--.arm7 manages to trigger all the error flags ...... todo: fix !
+
 Currently, line tags are hidden by default. Inline tags are ignored. -I enables inline tag matching (no \n required).
 
 Displaying tags is disabled with '-()' (the default). To ignore line tags, a -l/-L option will be added.
