@@ -18,6 +18,10 @@ Soon, -- will read unicode characters. Each will be replaced with ' ' with the c
 
 -- will also read data blocks and links to data files as single character blocks with the bitmap to be drawn on the overlay. The overlay data can also specify a number of rows and columns to occupy (including 0x0 for a dot, 0x1 for a vertical bar, and 1x0 for a horizontal bar), plus behaviours for the surrounding characters. Inline images will shift the chars under to the right, which would either adjust overflow positioning (should words be broken?). Underlay images will shift one to the left for the 0x0. -12.5,0+0x0 will shift 12.5 characters (12 * 10 + 5 pixels for block width 10) to the left.
 
+^^ update: -- now reads data blocks that begin with \[\\0tag\\0\] and end with \[/tag\\0\]
+
+There are many parameters that have not yet been given input options
+
 Soon, -- . will allow the directory to be explored as a menu, so that subdirectories and files can be opened.
 
 Later, running the . command should redirect to -- .
