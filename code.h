@@ -249,7 +249,11 @@ typedef struct { LF value; LF digits; LF scale; } LFDS;
 #define GETSTDCHAR       GETSTDCH
 #define PUTSTDCH(ch)     fputc(ch, stdout)
 #define PUTSTDCHAR(ch)   PUTSTDCH(ch)
+#define PUTSTDSTR(str)   fputs(str, stdout)
+#define PUTSTDSTRING(str) PUTSTDSTR(str)
+#define PUTFCS(fs, cs)   fputs(cs, fs)
 #define PUTFCH(fs, ch)   fputc(ch, fs)
+#define PUTFSTR(fs, str) PUTFCS(fs, str)
 #define STDGETCHAR       GETSTDCHAR
 #define STDPUTCHAR(ch)   PUTSTDCH(ch)
 #define FGETCHAR(fs)     GETFCH(fs)
@@ -554,6 +558,12 @@ typedef struct { LF value; LF digits; LF scale; } LFDS;
 #define AT(var)		&var
 // ATn defubed kater.. AT before var is probably not ASCII T - can has universal def?
 #define EQ		==
+
+#define ARRAYELEMENT(arr, el)  (*(arr + el))
+#define EE(arr, el)	ARRAYELEMENT(arr, el)
+// AE() .. nope, that's ASCII E...
+// EE()  allows relative-negative elements to be accessed
+
 #define OEQ1(dv, o, a)			dv[0 + o] EQ a
 #define OEQ(dv, o, a)			OEQ1(dv, o, a)
 #define OEQ2(dv, o, a, b)		OEQ(dv, 0, a) AND OEQ(dv, 1, b)
@@ -854,6 +864,8 @@ typedef struct { LF value; LF digits; LF scale; } LFDS;
 #define LOG8(str, v1, v2, v3, v4, v5, v6, v7, v8)	fprintf(stdout, str, v1, v2, v3, v4, v5, v6, v7, v8); LOG0
 #define LOG9(str, v1, v2, v3, v4, v5, v6, v7, v8, v9)	fprintf(stdout, str, v1, v2, v3, v4, v5, v6, v7, v8, v9); LOG0
 #define LOGCH(ix)			LOG1("%c", ix); LOG0
+// PUTSTDCH(ix) might be faster than this, but this flushes the buffer
+// if buffering happens for PUTSTDCH, consider redirecting this to that
 #define EXTCH(ix)			LOG("\016"); LOG1("%c", ix); LOG("\017"); LOG0
 #define LOGSPACE			LOGCH(SPACE);
 // ^ maybe one day this will be deprecated
@@ -887,10 +899,17 @@ typedef struct { LF value; LF digits; LF scale; } LFDS;
 #define LORN1s(str, v1)			printf("%s%s%s", str, v1, "\r\n")
 #define LORN2s(str, v1, v2)		printf("%s%s%s%s", str, v1, v2, "\r\n")
 
+#define LOG1N(str, v1)			printf(str"\n", v1)
+#define LOG2N(str, v1, v2)		printf(str"\n", v1, v2)
+#define LOG3N(str, v1, v2, v3)		printf(str"\n", v1, v2, v3)
+
 #define LORN1F(str, v1)                 printf(str"\r\n", v1)
 #define LORN2F(str, v1, v2)             printf(str"\r\n", v1, v2)
 #define LORN3F(str, v1, v2, v3)         printf(str"\r\n", v1, v2, v3)
 #define LONF(str)			printf(str"\n")
+#define LON1F(str, v1)			printf(str"\n", v1)
+#define LON2F(str, v1, v2)		printf(str"\n", v1, v2)
+#define LON3F(str, v1, v2, v3)		printf(str"\n", v1, v2, v3)
 // ^ cannot use dynamically allocated string for format due to concatenation
 
 
@@ -1118,6 +1137,7 @@ typedef struct { LF value; LF digits; LF scale; } LFDS;
 #define N	'n'
 #define M	'm'
 // yes no maybe ...
+// s for some ...
 
 #define _s(s)	 LOG1("%s",s);
 #define Rs(s)	RLOG1("%s",s);
@@ -1324,6 +1344,15 @@ typedef struct { LF value; LF digits; LF scale; } LFDS;
 #define Dc(c)	DLOG1("%c",c);
 #define Kc(c)	KLOG1("%c",c);
 #define cc(clr, ch)   LOG3("%s%c%s", COLOURSTR(clr), ch, OFFC)
+#define cs(clr, str)  LOG3("%s%s%s", COLOURSTR(clr), str, OFFC)
+//#define IFcc(clr, ch) IF (clr NQ N) { cc(clr, ch) } EL { LOGCH(ch); }
+// note: IFcc may not be able to print NUL chars !
+//#define IFcc(clr, ch) IF (clr NQ N) { cc(clr, ch) } EL { PUTSTDCH(ch); }
+// ^ displays NUL/EXT chars but need to check if it flushes the buffer
+//#define MAPcc(cch)  ((cch GT ('~' + 1)) ? cch
+//#define IFccELch(clr, cch, ch) \
+//          IF (clr NQ N) { \
+//            cc(clr, (ch GT .... maybe not, can't remap EXT to readable
 
 #define Gcc(c1, c2)	GLOG2("%c%c", c1, c2)
 #define Ccc(c1, c2)	CLOG2("%c%c", c1, c2)
@@ -1611,7 +1640,8 @@ typedef struct { LF value; LF digits; LF scale; } LFDS;
    (c EQ 'g') ? DGFGC : (c EQ 'c') ? DCFGC :     \
    (c EQ 'b') ? DBFGC : (c EQ 'm') ? DMFGC :     \
    (c EQ 'W') ?  WFGC : (c EQ 'L') ?  LFGC :     \
-   (c EQ 'D') ?  DFGC : (c EQ 'K') ?  KFGC : OFFC)
+   (c EQ 'D') ?  DFGC : (c EQ 'K') ?  KFGC :     \
+   (c EQ 'N') ?  OFFC : (c EQ 'n') ?  OFFC : OFFC)
 
 #define LOGV			printf // ...
 // #define ERRV			fprintf(stderr, ...
@@ -1967,10 +1997,12 @@ typedef struct { LF value; LF digits; LF scale; } LFDS;
 #define ISHEXCHaf(nv)		INRANGE(nv, 'a', 'f')
 #define ISHEXCHAF(nv)		INRANGE(nv, 'A', 'F')
 #define ISHEXCH09(nv)		ISNUMBER(nv)    // only true while - is not a number
+#define ISHEXPAIR(c1, c2)	(ISHEXCHAR(c1) AND ISHEXCHAR(c2))
 #define HEXaf(nv)		ISHEXCHaf(nv)
 #define HEXAF(nv)		ISHEXCHAF(nv)
 #define HEX09(nv)		ISHEXCH09(nv)
 #define HEXCHVALUE(nv)		(HEXAF(nv) ? (nv - AA + 10) : HEXaf(nv) ? (nv - Aa + 10) : HEX09(nv) ? (nv - A0) : 0)
+#define HEXPAIRVALUE(c1, c2)    (HEXCHVALUE(c1) * 16 + HEXCHVALUE(c2))
 #define ISPADCHAR(nv)		(nv EQ ' ' OR nv EQ '\t')
 #define ISLETTER(nv)		(INRANGE(nv, 'A', 'Z') OR INRANGE(nv, 'a', 'z'))
 #define ISALPHANUM(nv)		(ISLETTER(nv) OR ISNUMBER(nv))
@@ -2029,7 +2061,17 @@ typedef struct { LF value; LF digits; LF scale; } LFDS;
 #define WINCLQ(var, init, limit)  IN var = init; WI (INC var LQ limit)
 #define WDECGT(var, init, limit)  IN var = init; WI (DEC var GT limit)
 #define WDECGQ(var, init, limit)  IN var = init; WI (DEC var GQ limit)
-#define WINC(var, limit)	WINCLT(var, -1, limit)
+//#define WINC(var, limit)	WINCLT(var, -1, limit)
+// WINC IS NO LONGER WINCLT
+#define WIINC(varbuf, limit, match)  WI (*varbuf NQ match AND varbuf LT limit) { INC varbuf; }
+#define WIDEC(varbuf, limit, match)  WI (*varbuf NQ match AND varbuf GT limit) { DEC varbuf; }
+#define WINC(varbuf, match)          WINQ2(*varbuf, match, NUL) { INC varbuf; }
+// WDEC cannot exist because strings do not start with NUL
+#define WINCH(varbuf, match)         WINC(varbuf, match)
+// WINCH to matching character or to end of string NUL
+// WIDEC stops on limit char! first char! test if matching
+// WIINC stops on limit char! NUL char! test if matching or NUL
+
 //#define ON(eq)		IF (eq)
 //#define NO(nq)		IF (!(nq))
 
