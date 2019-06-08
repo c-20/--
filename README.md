@@ -31,3 +31,8 @@ Later, running the . command should redirect to -- .
 Running the -- command could open stdin, in the same way as cat.
 
 Or, -- could open -- . and allow a new file to be created if <Enter> is pressed. Down down enter might run nano, if nano is the default command associated with a particular file type.
+
+TODO: -f outputformat, to convert text to image, for example.
+-- bla.txt | -- -f png should create an image using the default font, size as required by the constituent text
+{ type: image,
+  data: [\0TEXT.PNG;WIDTH=500,HEIGHT=200\0]..........[\0/TEXT.PNG\0] }
